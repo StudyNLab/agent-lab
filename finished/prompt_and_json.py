@@ -107,7 +107,8 @@ user 메시지의 메모에서 할 일을 모두 뽑아, 아래 형식의 JSON�
 
 - owner: 메모에 적힌 담당자. 없으면 null
 - due: 마감 날짜를 '월/일' 숫자로만 (예: 10/24). 요일이나 시각은 넣지 않는다. 없으면 null
-- file: 그 할 일이 적힌 메모 파일 이름"""
+- file: 그 할 일이 적힌 메모 파일 이름
+- 이미 끝난 일은 뽑지 않는다. '조치'처럼 이미 한 일, 다른 메모에서 확정되거나 끝난 일이 그렇다"""
 
 SHORT_PROMPT = "메모에서 할 일을 뽑아 JSON으로 알려 줘. 할 일, 담당자, 마감, 파일 이름을 넣어."
 
@@ -228,13 +229,13 @@ def part2():
                 else:
                     passed += 1
                     print(f"  {run}번째: 통과 (할 일 {len(data['tasks'])}개, 다시 요청 {retries}번)")
-                    if method is method_c:
-                        last_good = data
+                    if method is method_c and prompt is DETAILED_PROMPT:
+                        last_good = data          # 프로그램이 쓰는 데이터는 자세한 지시 + C 로 받는다
             results.append((prompt_label, method_label, passed, retries_total))
 
     if last_good:
         print("=" * 60)
-        print(f"C의 결과를 프로그램이 처리: '나'의 할 일, 마감순 (오늘 {TODAY.month}/{TODAY.day})")
+        print(f"자세한 지시 + C의 결과를 프로그램이 처리: '나'의 할 일, 마감순 (오늘 {TODAY.month}/{TODAY.day})")
         mine = [task for task in last_good["tasks"] if task.get("owner") == "나"]
         for task in sorted(mine, key=due_date):
             if task.get("due"):

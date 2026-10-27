@@ -12,11 +12,18 @@ Agent 루프와 도구는 agent_loop.py 의 것을 가져다 쓴다(import).
   python memo_assistant.py 1   실습 1: 대화 기억 없이 / 있게 이어서 묻는다
   python memo_assistant.py 2   실습 2: 요약 규칙 두 가지를 비교한다
 """
+import re
 import sys
 
 import agent_loop
 from agent_loop import SYSTEM_PROMPT, agent_turn, tools_text
 from llm_client import call_llm
+
+# 대화를 기억하면, 사용자가 대화에서 알려 준 새 사실이 메모와 다를 수 있다.
+# agent_loop 의 시스템 프롬프트는 메모를 기준으로 답하게 하므로, 새 사실을 적용하라는 규칙 5를 더한다
+CHAT_RULE = ("5. 사용자가 대화에서 알려 준 바뀐 사실(일정, 마감 등)은 메모보다 새로운 정보로 보고 답에 적용한다. "
+             "메모와 다르면 메모에는 어떻게 적혀 있는지도 함께 알린다.")
+CHAT_PROMPT = SYSTEM_PROMPT.replace("\n\n출력 형식:", "\n" + CHAT_RULE + "\n\n출력 형식:")
 
 TOKEN_LIMIT = 2000      # 질문 토큰이 이보다 크면 요약한다 (시연용으로 작게 잡았다)
 KEEP_TURNS = 1          # 요약하지 않고 그대로 둘 최근 턴 수
@@ -88,7 +95,7 @@ def compact(messages, summary_so_far, rule):
     # (요약을 다시 요약하면 앞의 결론이 빠질 수 있다)
     summary = (summary_so_far + "\n" + new_summary).strip()
 
-    system = SYSTEM_PROMPT + "\n\n지금까지의 대화 요약 (오래된 대화는 이 요약으로 대신한다):\n" + summary
+    system = CHAT_PROMPT + "\n\n지금까지의 대화 요약 (오래된 대화는 이 요약으로 대신한다):\n" + summary
     return [{"role": "system", "content": system}] + recent, summary, None
 
 
@@ -98,7 +105,7 @@ def chat(questions=None, rule=None, compact_on=True):
     questions 가 None 이면 직접 입력받고, 목록이면 그 질문을 차례로 보낸다.
     compact_on 이면 질문 토큰이 TOKEN_LIMIT 를 넘을 때 rule(없으면 SUMMARY_RULE)로 요약한다.
     """
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    messages = [{"role": "system", "content": CHAT_PROMPT}]
     summary = ""
     result = {"questions": [], "records": [], "compactions": [], "summaries": [], "failures": []}
 
@@ -190,15 +197,32 @@ def part1():
 # ---------------------------------------------------------------
 # 실습 2: 요약 규칙 두 가지 비교
 # ---------------------------------------------------------------
-# 첫 질문에서 메모에 없는 사실(바뀐 마감)을 알려 주고, 마지막 질문에서 그 마감을 묻는다.
-# 메모에는 옛 마감 10/23만 있다. 메모를 다시 찾으면 10/23, 대화를 기억해야 10/27 이라고 답한다
-NEW_DUE = "10/27"
+# 첫 질문에서 메모에 없는 사실(바뀐 마감)을 알려 주고, 마지막 질문에서 지금의 마감 하나를 묻는다.
+# 메모에는 옛 마감 10/23만 있다. 메모를 다시 찾으면 10/23, 대화를 기억해 새 마감을 적용해야 10/27 이라고 답한다
+NEW_DUE, OLD_DUE = "10/27", "10/23"
 COMPACT_QUESTIONS = [
     f"이대리 안내 자료 초안 마감이 {NEW_DUE}(화)로 늦춰졌대. 메모는 아직 안 고쳤어. 이대리가 맡은 일 정리해 줘.",
     "내가 맡은 일도 같은 방식으로 정리해 줘.",
     "11월 일정 알려 줘.",
-    "이대리 안내 자료 초안은 언제까지야?",
+    "이대리 안내 자료 초안은 지금 기준으로 언제까지 내면 돼? 마감 날짜 하나만 답해 줘.",
 ]
+
+
+def judge_due(answer):
+    """마지막 답이 새 마감을 적용했는가. 날짜를 '언급'한 것과 '마감으로 답한' 것을 나눈다.
+
+    마감 하나만 답하라고 물었으므로 답의 첫 날짜를 답한 마감으로 보고, 나머지 날짜는 언급으로 본다.
+    """
+    dates = [d for d in re.findall(r"\d{1,2}/\d{1,2}", answer) if d in (NEW_DUE, OLD_DUE)]
+    if not dates:
+        return "마감 없음"
+    other = OLD_DUE if dates[0] == NEW_DUE else NEW_DUE
+    mention = f", {other}은 언급만" if other in dates else ""
+    if dates[0] == NEW_DUE:
+        return f"{NEW_DUE}으로 답함 (새 마감을 적용했다{mention})"
+    if NEW_DUE in dates:
+        return f"{OLD_DUE}으로 답함 (새 마감을 기억했지만 적용하지 않았다{mention})"
+    return f"{OLD_DUE}으로 답함 (메모의 옛 마감. 대화를 잊었다)"
 
 
 def part2():
@@ -228,12 +252,7 @@ def part2():
             kept = "요약 없음 (대화 원문 그대로)"
         else:
             kept = f"바뀐 마감 {NEW_DUE} {'있음' if NEW_DUE in last['summary'] else '없음'}"
-        if NEW_DUE in last["answer"]:
-            answer = f"{NEW_DUE} 있음 (대화를 기억했다)"
-        elif "10/23" in last["answer"]:
-            answer = "10/23만 있음 (메모의 옛 마감. 대화를 잊었다)"
-        else:
-            answer = "마감 없음"
+        answer = judge_due(last["answer"])
         print(label)
         print(f"  요약한 때     : {after} (요약하지 않음: {failed})")
         print(f"  요약 길이     : {lengths}")
