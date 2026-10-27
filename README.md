@@ -23,6 +23,7 @@ Rename-Item C:\agent-lab-main agent-lab
 | `check_setup.py` | 실습 환경 점검 | CHAPTER 1 실습 1 |
 | `memos/` | 연습용 메모 7개 | CHAPTER 3 ~ 6 |
 | `finished/` | 완성본 메모 정리 도우미와 메모 사본 | CHAPTER 1 실습 2, 따라 쓰다 막힐 때 비교 |
+| `code/` | 실습 단계별 전체 코드 (예: `code/ch05_lab1/agent_loop.py` = CHAPTER 5 실습 1). 교재의 `✎ 입력 내용` 이 가리키는 파일 | CHAPTER 2 ~ 6 |
 | `make_many_memos.py` | 비교 실습용 메모 100개(`many_memos/`) 만들기 | CHAPTER 4 실습 2 |
 
 API 키는 이 파일들에 들어 있지 않다. 키는 환경 변수 `LLM_API_KEY` 에 넣는다 (CHAPTER 1 실습 1).
