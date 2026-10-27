@@ -4,15 +4,17 @@
 
 ## 받기
 
-Windows PowerShell에서 실행한다. `C:\agent-lab` 에 실습 파일이 풀린다.
+Windows PowerShell에서 실행한다. `C:\agent-lab` 에 실습 파일이 풀린다. (교재 CHAPTER 1 실습 1 Step 1)
 
 ```powershell
-Invoke-WebRequest https://github.com/StudyNLab/agent-lab/archive/refs/heads/main.zip -OutFile $env:TEMP\agent-lab.zip
+$url = "https://github.com/StudyNLab/agent-lab/archive/main.zip"
+curl.exe -sSL -o $env:TEMP\agent-lab.zip $url
 Expand-Archive $env:TEMP\agent-lab.zip -DestinationPath C:\
 Rename-Item C:\agent-lab-main agent-lab
 ```
 
-이미 `C:\agent-lab` 이 있으면 `Rename-Item` 이 실패한다. 그 폴더를 다른 이름으로 바꾼 뒤 다시 한다.
+- 이미 `C:\agent-lab` 이 있으면 `Rename-Item` 이 실패한다. 그 폴더를 다른 이름으로 바꾼 뒤 다시 한다.
+- 명령이 막히면 브라우저로 위 주소를 열어 zip을 받고, `C:\` 에 풀어 폴더 이름을 `agent-lab` 으로 바꾼다.
 
 ## 들어 있는 것
 
