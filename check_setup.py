@@ -4,8 +4,9 @@
   1. 파이썬 버전
   2. 가상 환경 (실습 폴더의 .venv 를 켜고 실행했는가)
   3. requests 라이브러리 (LLM API에 HTTP 요청을 보낼 때 쓴다)
-  4. API 키 환경 변수 LLM_API_KEY (키 값은 화면에 찍지 않는다)
-  5. 연습용 메모 폴더 memos (메모 7개, UTF-8)
+  4. python-dotenv 라이브러리 (.env 파일을 읽을 때 쓴다)
+  5. API 키: 실습 폴더의 .env 파일에 LLM_API_KEY 가 있는가 (키 값은 화면에 찍지 않는다)
+  6. 연습용 메모 폴더 memos (메모 7개, UTF-8)
 
 실행: python check_setup.py   (가상 환경을 켠 뒤)
 """
@@ -16,6 +17,7 @@ from pathlib import Path
 LAB_FOLDER = Path(__file__).resolve().parent
 MEMO_FOLDER = LAB_FOLDER / "memos"
 VENV_FOLDER = LAB_FOLDER / ".venv"
+KEY_FILE = LAB_FOLDER / ".env"
 NEED_PYTHON = (3, 13)
 NEED_MEMOS = 7
 
@@ -55,16 +57,29 @@ try:
 except ImportError:
     results.append(("requests", False, "없음", "가상 환경을 켠 뒤 python -m pip install requests"))
 
-# 4. API 키 환경 변수 (값은 찍지 않고 길이만 찍는다)
-key = os.environ.get("LLM_API_KEY", "").strip()
-results.append((
-    "LLM_API_KEY",
-    bool(key),
-    f"있음 (길이 {len(key)})" if key else "없음",
-    "환경 변수를 넣고 PowerShell 창을 새로 연다",
-))
+# 4. python-dotenv 라이브러리
+try:
+    from dotenv import dotenv_values
+    import importlib.metadata
+    results.append(("python-dotenv", True, importlib.metadata.version("python-dotenv"), ""))
+except ImportError:
+    dotenv_values = None
+    results.append(("python-dotenv", False, "없음", "가상 환경을 켠 뒤 python -m pip install python-dotenv"))
 
-# 5. 연습용 메모 폴더
+# 5. API 키: .env 파일의 LLM_API_KEY (값은 찍지 않고 길이만 찍는다)
+key_todo = r"Copy-Item .env.example .env 로 만들고, notepad .env 로 열어 = 뒤에 키를 넣고 저장한다"
+if not KEY_FILE.exists():
+    key_ok, key_value = False, ".env 파일 없음"
+elif dotenv_values is None:
+    key_ok, key_value, key_todo = False, "읽지 못함 (python-dotenv 없음)", "python-dotenv 를 먼저 설치한다"
+else:
+    key = (dotenv_values(KEY_FILE).get("LLM_API_KEY") or "").strip()
+    key_ok = bool(key)
+    key_value = f"있음 (길이 {len(key)})" if key else ".env 에 값이 비어 있음"
+    key_todo = r"notepad .env 로 열어 LLM_API_KEY= 뒤에 키를 넣고 저장한다"
+results.append(("LLM_API_KEY (.env)", key_ok, key_value, key_todo))
+
+# 6. 연습용 메모 폴더
 memo_files = sorted(MEMO_FOLDER.glob("*.txt"))
 broken = []
 for memo in memo_files:

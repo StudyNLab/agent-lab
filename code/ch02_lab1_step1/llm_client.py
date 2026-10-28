@@ -3,12 +3,14 @@ import json
 import os
 
 import requests
+from dotenv import load_dotenv
 
 # 1. 접속 값
 BASE_URL = "https://api.deepseek.com"            # 호스트 (서버 주소)
 ENDPOINT = BASE_URL + "/chat/completions"        # 엔드포인트
 MODEL = "deepseek-flash"                         # 모델 이름
-API_KEY = os.environ["LLM_API_KEY"]              # 키는 환경 변수에서 읽는다
+load_dotenv(override=True)                       # 실습 폴더의 .env 파일을 읽는다
+API_KEY = os.environ["LLM_API_KEY"]              # .env 에 적은 키
 
 # 2. 요청 만들기: 헤더 + JSON 본문
 headers = {

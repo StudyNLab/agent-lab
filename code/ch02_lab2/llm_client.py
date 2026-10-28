@@ -2,7 +2,7 @@
 
 이 과정의 파일은 모두 이 파일의 call_llm() 으로 모델을 부른다.
   - 접속 값(주소, 모델 이름)은 이 파일 맨 위 한 곳에만 둔다.
-  - API 키는 코드에 적지 않고 환경 변수 LLM_API_KEY 에서 읽는다.
+  - API 키는 코드에 적지 않고 실습 폴더의 .env 파일(LLM_API_KEY=키)에서 읽는다.
   - 시간 초과와 일시적인 오류(429, 5xx)는 기다렸다가 다시 보낸다.
   - 답이 max_tokens 에서 잘리면(finish_reason = length) 알려 준다.
 
@@ -12,6 +12,7 @@ import os
 import time
 
 import requests
+from dotenv import load_dotenv
 
 # 1. 접속 값
 BASE_URL = "https://api.deepseek.com"            # 호스트 (서버 주소)
@@ -24,10 +25,11 @@ NO_THINKING = {"thinking": {"type": "disabled"}}  # 생각 모드를 끄는 본�
 
 
 def read_api_key():
-    """API 키를 환경 변수에서 읽는다. 키는 코드와 화면에 남기지 않는다."""
+    """API 키를 실습 폴더의 .env 파일에서 읽는다. 키는 코드와 화면에 남기지 않는다."""
+    load_dotenv(override=True)    # .env 의 LLM_API_KEY=키 를 환경 변수로 올린다
     key = os.environ.get("LLM_API_KEY", "").strip()
     if not key:
-        raise RuntimeError("환경 변수 LLM_API_KEY 가 없다. (CHAPTER 1 실습 1)")
+        raise RuntimeError(".env 파일에 LLM_API_KEY 가 없다. (CHAPTER 1 실습 1)")
     return key
 
 
