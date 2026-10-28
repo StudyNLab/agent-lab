@@ -4,17 +4,16 @@
 
 ## 받기
 
-Windows PowerShell에서 실행한다. `C:\agent-lab` 에 실습 파일이 풀린다. (교재 CHAPTER 1 실습 1 Step 1)
+Windows PowerShell에서 실행한다. `C:\agent-lab` 에 실습 파일이 들어간다. (교재 CHAPTER 1 실습 1 Step 1)
 
 ```powershell
-$url = "https://github.com/StudyNLab/agent-lab/archive/main.zip"
-curl.exe -sSL -o $env:TEMP\agent-lab.zip $url
-Expand-Archive $env:TEMP\agent-lab.zip -DestinationPath C:\
-Rename-Item C:\agent-lab-main agent-lab
+git clone https://github.com/StudyNLab/agent-lab.git C:\agent-lab
 ```
 
-- 이미 `C:\agent-lab` 이 있으면 `Rename-Item` 이 실패한다. 그 폴더를 다른 이름으로 바꾼 뒤 다시 한다.
-- 명령이 막히면 브라우저로 위 주소를 열어 zip을 받고, `C:\` 에 풀어 폴더 이름을 `agent-lab` 으로 바꾼다.
+- Git이 없으면 먼저 설치한다: `winget install --id Git.Git -e --source winget` 또는 https://git-scm.com/install/windows 의 설치 프로그램. 설치한 뒤 PowerShell 창을 새로 연다.
+- 실습 파일이 바뀌면 `C:\agent-lab` 에서 `git pull` 로 최신본을 받는다. 직접 만든 파일은 그대로 남는다.
+- 이미 `C:\agent-lab` 이 있으면 받을 수 없다. 그 폴더를 다른 이름으로 바꾼 뒤 다시 한다.
+- 네트워크가 막혀 `git clone` 이 안 되면 https://github.com/StudyNLab/agent-lab/archive/main.zip 을 받아 `C:\` 에 풀고, 폴더 이름을 `agent-lab-main` 에서 `agent-lab` 으로 바꾼다.
 
 ## 들어 있는 것
 
