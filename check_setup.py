@@ -1,4 +1,4 @@
-"""실습 환경 점검 (CHAPTER 1, 강사가 나눠 주는 파일)
+"""실습 환경 점검 (CHAPTER 1 실습 1)
 
 이 과정의 실습에 필요한 것이 이 PC에 준비되어 있는지 확인한다.
   1. 파이썬 버전
@@ -33,12 +33,20 @@ results.append((
 
 # 2. 가상 환경: 지금 실행 중인 파이썬이 실습 폴더의 .venv 것인가
 in_venv = Path(sys.prefix).resolve() == VENV_FOLDER.resolve()
-results.append((
-    "가상 환경",
-    in_venv,
-    "사용 중 (.venv)" if in_venv else f"사용 안 함 ({sys.prefix})",
-    r".\.venv\Scripts\Activate.ps1 로 켠다",
-))
+other_venv = not in_venv and sys.prefix != sys.base_prefix    # 다른 폴더의 가상 환경이 켜져 있다
+if in_venv:
+    venv_value = "사용 중 (.venv)"
+elif other_venv:
+    venv_value = f"다른 가상 환경 ({sys.prefix})"
+else:
+    venv_value = f"사용 안 함 ({sys.prefix})"
+venv_todo = []
+if other_venv:
+    venv_todo.append("deactivate 로 끄고")
+if not VENV_FOLDER.exists():
+    venv_todo.append("실습 폴더에서 python -m venv .venv 로 만든 뒤")
+venv_todo.append(r".\.venv\Scripts\Activate.ps1 로 켠다")
+results.append(("가상 환경", in_venv, venv_value, ", ".join(venv_todo)))
 
 # 3. requests 라이브러리
 try:
