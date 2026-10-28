@@ -20,6 +20,7 @@ git clone https://github.com/StudyNLab/agent-lab.git C:\agent-lab
 | 경로 | 내용 | 쓰는 곳 |
 |---|---|---|
 | `check_setup.py` | 실습 환경 점검 | CHAPTER 1 실습 1 |
+| `.env.example` | API 키를 넣을 파일의 본보기. `.env` 로 복사해 `LLM_API_KEY=` 뒤에 키를 넣는다 (`.env` 는 저장소에 올리지 않는다) | CHAPTER 1 실습 1 Step 7 |
 | `memos/` | 연습용 메모 7개 | CHAPTER 3 ~ 6 |
 | `finished/` | 완성본 메모 정리 도우미와 메모 사본 | CHAPTER 1 실습 2, 따라 쓰다 막힐 때 비교 |
 | `code/` | 실습 단계별 전체 코드 (예: `code/ch05_lab1/agent_loop.py` = CHAPTER 5 실습 1). 교재의 `✎ 입력 내용` 이 가리키는 파일 | CHAPTER 2 ~ 6 |
