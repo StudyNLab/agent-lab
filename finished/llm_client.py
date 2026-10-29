@@ -33,7 +33,8 @@ def read_api_key():
     return key
 
 
-def call_llm(messages, tools=None, max_tokens=4000, response_format=None, thinking=True):
+def call_llm(messages, tools=None, max_tokens=4000, response_format=None,
+             thinking=True):
     """모델 호출 한 번. 응답 본문(JSON)을 딕셔너리로 돌려준다.
 
     thinking=False 이면 생각 모드를 끈다. 단순한 일에서 더 빠르고 싸다. (CHAPTER 3)
@@ -54,23 +55,27 @@ def call_llm(messages, tools=None, max_tokens=4000, response_format=None, thinki
     # 3. 보내기: 시간 초과와 일시적인 오류는 기다리는 시간을 늘려 가며 다시 보낸다
     for attempt in range(1, MAX_ATTEMPTS + 1):
         try:
-            response = requests.post(ENDPOINT, headers=headers, json=body, timeout=TIMEOUT)
+            response = requests.post(ENDPOINT, headers=headers, json=body,
+                                     timeout=TIMEOUT)
         except requests.exceptions.Timeout:
             problem = f"시간 초과 ({TIMEOUT}초)"
         else:
             if response.status_code == 200:
                 data = response.json()
                 if data["choices"][0]["finish_reason"] == "length":
-                    print(f"  [주의] 답이 max_tokens({max_tokens})에서 잘렸다 (finish_reason = length)")
+                    print(f"  [주의] 답이 max_tokens({max_tokens})에서 잘렸다"
+                          " (finish_reason = length)")
                 return data
             if response.status_code not in RETRY_STATUS:
                 # 400(요청 잘못), 401(인증 실패) 등은 다시 보내도 같다
-                raise RuntimeError(f"API 오류 {response.status_code}: {response.text[:300]}")
+                raise RuntimeError(
+                    f"API 오류 {response.status_code}: {response.text[:300]}")
             problem = f"상태 코드 {response.status_code}"
 
         if attempt < MAX_ATTEMPTS:
             wait = 2 ** attempt
-            print(f"  [다시 시도] {problem} ➔ {wait}초 뒤 다시 보낸다 ({attempt}/{MAX_ATTEMPTS - 1})")
+            print(f"  [다시 시도] {problem} ➔ {wait}초 뒤 다시 보낸다"
+                  f" ({attempt}/{MAX_ATTEMPTS - 1})")
             time.sleep(wait)
 
     raise RuntimeError(f"API 호출 실패: {problem} ({MAX_ATTEMPTS}번 보냄)")

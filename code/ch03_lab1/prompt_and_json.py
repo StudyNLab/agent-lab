@@ -77,7 +77,8 @@ def part1():
     all_memos = read_memos(sorted(p.name for p in MEMO_FOLDER.glob("*.txt")))
     with_memos, tokens_memos = ask([
         {"role": "system", "content": ASSISTANT_PROMPT},
-        {"role": "user", "content": f"<memos>\n{all_memos}\n</memos>\n\n질문: {question}"},
+        {"role": "user",
+         "content": f"<memos>\n{all_memos}\n</memos>\n\n질문: {question}"},
     ])
     found = [name for name in MEETING_FILES if name in with_memos]
     print("=" * 60)

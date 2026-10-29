@@ -89,13 +89,16 @@ def compact(messages, summary_so_far, rule):
     new_summary, finish = summarize(old, rule)
     # 요약이 비었거나 잘렸으면 오래된 턴을 지우지 않는다. 지우면 그 대화를 잃는다
     if finish != "stop" or not new_summary.strip():
-        return messages, summary_so_far, f"요약 실패 (finish_reason = {finish}, 요약 {len(new_summary)}자)"
+        return (messages, summary_so_far,
+                f"요약 실패 (finish_reason = {finish}, 요약 {len(new_summary)}자)")
 
     # 앞서 만든 요약은 다시 요약하지 않고 그대로 두고, 새로 오래된 턴의 요약만 덧붙인다.
     # (요약을 다시 요약하면 앞의 결론이 빠질 수 있다)
     summary = (summary_so_far + "\n" + new_summary).strip()
 
-    system = CHAT_PROMPT + "\n\n지금까지의 대화 요약 (오래된 대화는 이 요약으로 대신한다):\n" + summary
+    system = (CHAT_PROMPT
+              + "\n\n지금까지의 대화 요약 (오래된 대화는 이 요약으로 대신한다):\n"
+              + summary)
     return [{"role": "system", "content": system}] + recent, summary, None
 
 
@@ -131,7 +134,8 @@ def chat(questions=None, rule=None, compact_on=True):
         last_prompt_tokens = record["prompt_tokens"][-1]
         if compact_on and last_prompt_tokens > TOKEN_LIMIT:
             before = len(messages)
-            messages, summary, problem = compact(messages, summary, rule or SUMMARY_RULE)
+            messages, summary, problem = compact(messages, summary,
+                                                 rule or SUMMARY_RULE)
             if problem:
                 result["failures"].append(len(result["questions"]))
                 print(f"\n  [컨텍스트 관리] 질문 토큰 {last_prompt_tokens} > 기준 {TOKEN_LIMIT}"

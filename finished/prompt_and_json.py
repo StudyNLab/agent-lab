@@ -77,7 +77,8 @@ def part1():
     all_memos = read_memos(sorted(p.name for p in MEMO_FOLDER.glob("*.txt")))
     with_memos, tokens_memos = ask([
         {"role": "system", "content": ASSISTANT_PROMPT},
-        {"role": "user", "content": f"<memos>\n{all_memos}\n</memos>\n\n질문: {question}"},
+        {"role": "user",
+         "content": f"<memos>\n{all_memos}\n</memos>\n\n질문: {question}"},
     ])
     found = [name for name in MEETING_FILES if name in with_memos]
     print("=" * 60)
@@ -175,19 +176,22 @@ def check(text):
 
 def method_a(prompt, memos):
     """A. 프롬프트로만"""
-    messages = [{"role": "system", "content": prompt}, {"role": "user", "content": memos}]
+    messages = [{"role": "system", "content": prompt},
+                {"role": "user", "content": memos}]
     return extract(messages, json_mode=False), 0
 
 
 def method_b(prompt, memos):
     """B. JSON 모드"""
-    messages = [{"role": "system", "content": prompt}, {"role": "user", "content": memos}]
+    messages = [{"role": "system", "content": prompt},
+                {"role": "user", "content": memos}]
     return extract(messages, json_mode=True), 0
 
 
 def method_c(prompt, memos):
     """C. JSON 모드 + 프로그램 검사 + 틀린 곳을 알려 주며 다시 요청 (최대 2번)"""
-    messages = [{"role": "system", "content": prompt}, {"role": "user", "content": memos}]
+    messages = [{"role": "system", "content": prompt},
+                {"role": "user", "content": memos}]
     text = extract(messages, json_mode=True)
     for retry in range(1, 3):
         data, problems = check(text)
@@ -197,9 +201,10 @@ def method_c(prompt, memos):
         # 틀린 곳과 스키마 한 줄만 보낸다. 자세한 지시(예시, 규칙)는 보내지 않는다
         messages += [
             {"role": "assistant", "content": text},
-            {"role": "user", "content": "다음 문제를 고쳐서 JSON 전체를 다시 보내라:\n- "
-                                        + "\n- ".join(problems[:10])
-                                        + "\n\n지켜야 할 형식: " + SCHEMA_LINE},
+            {"role": "user",
+             "content": "다음 문제를 고쳐서 JSON 전체를 다시 보내라:\n- "
+                        + "\n- ".join(problems[:10])
+                        + "\n\n지켜야 할 형식: " + SCHEMA_LINE},
         ]
         text = extract(messages, json_mode=True)
     return text, 2

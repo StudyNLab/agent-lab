@@ -41,7 +41,8 @@ READ_MEMO_TOOL = {
         "parameters": {
             "type": "object",
             "properties": {
-                "file_name": {"type": "string", "description": "읽을 메모 파일 이름. 예: 장보기.txt"},
+                "file_name": {"type": "string",
+                              "description": "읽을 메모 파일 이름. 예: 장보기.txt"},
             },
             "required": ["file_name"],
         },
@@ -80,15 +81,16 @@ def ask_with_tool(folder, question, show=True):
         print(f"  [1차 호출] finish_reason = {choice['finish_reason']}")
 
     if message.get("tool_calls"):
-        messages.append(message)                    # 모델의 도구 요청을 통째로 붙인다
+        messages.append(message)  # 모델의 도구 요청을 통째로 붙인다
         for call in message["tool_calls"]:
             arguments = json.loads(call["function"]["arguments"])
-            result = read_memo(folder, arguments["file_name"])          # 프로그램이 실행한다
+            result = read_memo(folder, arguments["file_name"])  # 프로그램이 실행한다
             record["read"].append(arguments["file_name"])
             if show:
                 print(f"    [모델] read_memo({arguments['file_name']}) 요청")
                 print(f"    [프로그램] 실행 ➔ {result.splitlines()[0][:40]}")
-            messages.append({"role": "tool", "tool_call_id": call["id"], "content": result})
+            messages.append({"role": "tool", "tool_call_id": call["id"],
+                             "content": result})
 
         data = call_llm(messages, tools=[READ_MEMO_TOOL])              # 2차 호출
         choice = data["choices"][0]

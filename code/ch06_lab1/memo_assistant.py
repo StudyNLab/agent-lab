@@ -57,7 +57,8 @@ def chat(questions=None, rule=None, compact_on=True):
         last_prompt_tokens = record["prompt_tokens"][-1]
         if compact_on and last_prompt_tokens > TOKEN_LIMIT:
             before = len(messages)
-            messages, summary, problem = compact(messages, summary, rule or SUMMARY_RULE)
+            messages, summary, problem = compact(messages, summary,
+                                                 rule or SUMMARY_RULE)
             if problem:
                 result["failures"].append(len(result["questions"]))
                 print(f"\n  [컨텍스트 관리] 질문 토큰 {last_prompt_tokens} > 기준 {TOKEN_LIMIT}"

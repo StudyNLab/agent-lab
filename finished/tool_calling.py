@@ -41,7 +41,8 @@ READ_MEMO_TOOL = {
         "parameters": {
             "type": "object",
             "properties": {
-                "file_name": {"type": "string", "description": "읽을 메모 파일 이름. 예: 장보기.txt"},
+                "file_name": {"type": "string",
+                              "description": "읽을 메모 파일 이름. 예: 장보기.txt"},
             },
             "required": ["file_name"],
         },
@@ -80,15 +81,16 @@ def ask_with_tool(folder, question, show=True):
         print(f"  [1차 호출] finish_reason = {choice['finish_reason']}")
 
     if message.get("tool_calls"):
-        messages.append(message)                    # 모델의 도구 요청을 통째로 붙인다
+        messages.append(message)  # 모델의 도구 요청을 통째로 붙인다
         for call in message["tool_calls"]:
             arguments = json.loads(call["function"]["arguments"])
-            result = read_memo(folder, arguments["file_name"])          # 프로그램이 실행한다
+            result = read_memo(folder, arguments["file_name"])  # 프로그램이 실행한다
             record["read"].append(arguments["file_name"])
             if show:
                 print(f"    [모델] read_memo({arguments['file_name']}) 요청")
                 print(f"    [프로그램] 실행 ➔ {result.splitlines()[0][:40]}")
-            messages.append({"role": "tool", "tool_call_id": call["id"], "content": result})
+            messages.append({"role": "tool", "tool_call_id": call["id"],
+                             "content": result})
 
         data = call_llm(messages, tools=[READ_MEMO_TOOL])              # 2차 호출
         choice = data["choices"][0]
@@ -139,11 +141,16 @@ def part1():
 # 4. 비교용: 메모 전체를 user 메시지에 넣기 (CHAPTER 3 실습 1의 방법)
 # ---------------------------------------------------------------
 def ask_with_all_memos(folder, question):
-    parts = [f'<memo file="{name}">\n{(folder / name).read_text(encoding="utf-8").strip()}\n</memo>'
+    parts = [f'<memo file="{name}">\n'
+             f'{(folder / name).read_text(encoding="utf-8").strip()}\n</memo>'
              for name in memo_names(folder)]
     messages = [
-        {"role": "system", "content": f"너는 '메모 정리 도우미'다. user 메시지의 메모로 답한다.\n\n{RULES}"},
-        {"role": "user", "content": "<memos>\n" + "\n\n".join(parts) + f"\n</memos>\n\n질문: {question}"},
+        {"role": "system",
+         "content": f"너는 '메모 정리 도우미'다. user 메시지의 메모로 답한다."
+                    f"\n\n{RULES}"},
+        {"role": "user",
+         "content": "<memos>\n" + "\n\n".join(parts)
+                    + f"\n</memos>\n\n질문: {question}"},
     ]
     data = call_llm(messages)
     choice = data["choices"][0]

@@ -100,7 +100,8 @@ TOOLS = [
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "file_name": {"type": "string", "description": "읽을 메모 파일 이름. 예: 장보기.txt"},
+                    "file_name": {"type": "string",
+                                  "description": "읽을 메모 파일 이름. 예: 장보기.txt"},
                 },
                 "required": ["file_name"],
             },
@@ -146,7 +147,8 @@ def run_tool_calls(tool_calls, record):
         shown = result.replace("\n", " / ")
         if SHOW:
             print(f"    [프로그램] {name} 실행 ➔ {shown[:60]}")
-        tool_messages.append({"role": "tool", "tool_call_id": call["id"], "content": result})
+        tool_messages.append({"role": "tool", "tool_call_id": call["id"],
+                              "content": result})
     return tool_messages
 
 
@@ -182,7 +184,8 @@ def agent_turn(messages):
             return record                     # 모델이 답을 마쳤다
 
         # length(max_tokens 에서 잘림) 등: 도구 요청이 없어도 일을 마친 것이 아니다
-        record["answer"] = f"(미완료: finish_reason = {choice['finish_reason']}. 답을 끝까지 받지 못했다)"
+        record["answer"] = (f"(미완료: finish_reason = {choice['finish_reason']}."
+                            " 답을 끝까지 받지 못했다)")
         if message.get("content"):
             record["answer"] += "\n" + message["content"]      # 잘린 데까지의 답
         return record
