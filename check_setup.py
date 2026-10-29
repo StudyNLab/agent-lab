@@ -67,7 +67,7 @@ except ImportError:
     results.append(("python-dotenv", False, "없음", "가상 환경을 켠 뒤 python -m pip install python-dotenv"))
 
 # 5. API 키: .env 파일의 LLM_API_KEY (값은 찍지 않고 길이만 찍는다)
-key_todo = r"Copy-Item .env.example .env 로 만들고, notepad .env 로 열어 = 뒤에 키를 넣고 저장한다"
+key_todo = "VS Code에서 실습 폴더에 .env 파일을 만들고 LLM_API_KEY=키 를 적어 저장한다"
 if not KEY_FILE.exists():
     key_ok, key_value = False, ".env 파일 없음"
 elif dotenv_values is None:
@@ -76,7 +76,7 @@ else:
     key = (dotenv_values(KEY_FILE).get("LLM_API_KEY") or "").strip()
     key_ok = bool(key)
     key_value = f"있음 (길이 {len(key)})" if key else ".env 에 값이 비어 있음"
-    key_todo = r"notepad .env 로 열어 LLM_API_KEY= 뒤에 키를 넣고 저장한다"
+    key_todo = "VS Code에서 .env 를 열어 LLM_API_KEY= 뒤에 키를 넣고 저장한다"
 results.append(("LLM_API_KEY (.env)", key_ok, key_value, key_todo))
 
 # 6. 연습용 메모 폴더
