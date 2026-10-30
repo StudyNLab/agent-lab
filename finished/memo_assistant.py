@@ -226,7 +226,7 @@ def judge_due(answer):
         return f"{NEW_DUE}으로 답함 (새 마감을 적용했다{mention})"
     if NEW_DUE in dates:
         return f"{OLD_DUE}으로 답함 (새 마감을 기억했지만 적용하지 않았다{mention})"
-    return f"{OLD_DUE}으로 답함 (메모의 옛 마감. 대화를 잊었다)"
+    return f"{OLD_DUE}으로 답함 (메모의 옛 마감, {NEW_DUE} 언급 없음)"
 
 
 def part2():

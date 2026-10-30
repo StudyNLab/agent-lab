@@ -286,6 +286,15 @@ def part2():
     TOOLS[1]["function"]["description"] = SEARCH_DESCRIPTION + " " + RETRY_HINT
 
     # (다) 없는 파일을 읽게 하기: 도구 오류를 결과로 돌려준다
+    # 먼저 프로그램이 직접 요청한다: 오류가 결과로 돌아가는 것을 늘 볼 수 있다
+    call = {"id": "check",
+            "function": {"name": "read_memo",
+                         "arguments": '{"file_name": "없는메모.txt"}'}}
+    result = run_tool_calls([call], {"tools": [], "tool_errors": []})[0]["content"]
+    print(f"[오류 확인] read_memo('없는메모.txt') ➔ {result}")
+    rows.append(("오류 확인", "없는메모.txt",
+                 "오류를 결과로 돌려줌" if result.startswith("오류:") else "오류가 아님"))
+    # 그다음 모델에게 맡긴다: read 를 요청할지는 모델이 정한다 (관찰)
     record = run_agent("없는메모.txt 읽어 줘.")
     asked = ("read_memo", {"file_name": "없는메모.txt"}) in record["tools"]
     print(f"[도구 오류] 쓴 도구: {tools_text(record)}, 끝난 이유 = {record['finish']}")
