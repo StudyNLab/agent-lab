@@ -10,7 +10,7 @@ Agent 루프와 도구는 agent_loop.py 의 것을 가져다 쓴다(import).
 실행:
   python memo_assistant.py     직접 대화한다 (빈 줄 또는 '끝'을 입력하면 끝난다)
   python memo_assistant.py 1   실습 1: 대화 기억 없이 / 있게 이어서 묻는다
-  python memo_assistant.py 2   실습 2: 요약 규칙 두 가지를 비교한다
+  (실습 2의 python memo_assistant.py 2 는 실습 2 Step 3의 파일에서 쓴다)
 """
 import re
 import sys
@@ -198,78 +198,9 @@ def part1():
               f" | {record['prompt_tokens'][-1]}")
 
 
-# ---------------------------------------------------------------
-# 실습 2: 요약 규칙 두 가지 비교
-# ---------------------------------------------------------------
-# 첫 질문에서 메모에 없는 사실(바뀐 마감)을 알려 주고, 마지막 질문에서 지금의 마감 하나를 묻는다.
-# 메모에는 옛 마감 10/23만 있다. 메모를 다시 찾으면 10/23, 대화를 기억해 새 마감을 적용해야 10/27 이라고 답한다
-NEW_DUE, OLD_DUE = "10/27", "10/23"
-COMPACT_QUESTIONS = [
-    f"이대리 안내 자료 초안 마감이 {NEW_DUE}(화)로 늦춰졌대. 메모는 아직 안 고쳤어. 이대리가 맡은 일 정리해 줘.",
-    "내가 맡은 일도 같은 방식으로 정리해 줘.",
-    "11월 일정 알려 줘.",
-    "이대리 안내 자료 초안은 지금 기준으로 언제까지 내면 돼? 마감 날짜 하나만 답해 줘.",
-]
-
-
-def judge_due(answer):
-    """마지막 답이 새 마감을 적용했는가. 날짜를 '언급'한 것과 '마감으로 답한' 것을 나눈다.
-
-    마감 하나만 답하라고 물었으므로 답의 첫 날짜를 답한 마감으로 보고, 나머지 날짜는 언급으로 본다.
-    """
-    dates = [d for d in re.findall(r"\d{1,2}/\d{1,2}", answer) if d in (NEW_DUE, OLD_DUE)]
-    if not dates:
-        return "마감 없음"
-    other = OLD_DUE if dates[0] == NEW_DUE else NEW_DUE
-    mention = f", {other}은 언급만" if other in dates else ""
-    if dates[0] == NEW_DUE:
-        return f"{NEW_DUE}으로 답함 (새 마감을 적용했다{mention})"
-    if NEW_DUE in dates:
-        return f"{OLD_DUE}으로 답함 (새 마감을 기억했지만 적용하지 않았다{mention})"
-    return f"{OLD_DUE}으로 답함 (메모의 옛 마감, {NEW_DUE} 언급 없음)"
-
-
-def part2():
-    agent_loop.SHOW = False                        # 호출마다 찍는 줄은 끈다
-    rows = []
-    for label, rule in [("규칙 1: 메모 사실까지", FACTS_RULE), ("규칙 2: 질문과 결론만", SUMMARY_RULE)]:
-        print("=" * 60)
-        print(label)
-        print("=" * 60)
-        result = chat(COMPACT_QUESTIONS, rule=rule)
-        for number, summary in zip(result["compactions"], result["summaries"]):
-            print(f"\n  [질문 {number} 뒤의 요약, {len(summary)}자]")
-            for line in summary.splitlines():
-                print("   ", line)
-        last = result["records"][-1]
-        reread = [args["file_name"] for name, args in last["tools"] if name == "read_memo"]
-        rows.append((label, result, last, reread))
-
-    print()
-    print("요약 (여기만 보면 된다)")
-    for label, result, last, reread in rows:
-        after = ", ".join(f"질문 {n} 뒤" for n in result["compactions"]) or "없음"
-        failed = ", ".join(f"질문 {n} 뒤" for n in result["failures"]) or "없음"
-        lengths = " ➔ ".join(f"{len(s)}자" for s in result["summaries"]) or "-"
-        tokens = " ➔ ".join(str(r["prompt_tokens"][-1]) for r in result["records"])
-        if not last["summary"]:
-            kept = "요약 없음 (대화 원문 그대로)"
-        else:
-            kept = f"바뀐 마감 {NEW_DUE} {'있음' if NEW_DUE in last['summary'] else '없음'}"
-        answer = judge_due(last["answer"])
-        print(label)
-        print(f"  요약한 때     : {after} (요약하지 않음: {failed})")
-        print(f"  요약 길이     : {lengths}")
-        print(f"  질문 토큰     : {tokens} (질문마다 마지막 호출)")
-        print(f"  질문 4 때 요약: {kept}")
-        print(f"  질문 4의 답   : {answer}, 다시 읽은 메모 {len(reread)}개")
-
-
 if __name__ == "__main__":
     if sys.argv[1:] == ["1"]:
         part1()
-    elif sys.argv[1:] == ["2"]:
-        part2()
     else:
         print("메모 정리 도우미입니다. 빈 줄 또는 '끝'을 입력하면 끝납니다.")
         print_summary(chat())

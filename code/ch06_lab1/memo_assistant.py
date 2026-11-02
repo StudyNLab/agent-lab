@@ -8,9 +8,8 @@
 Agent 루프와 도구는 agent_loop.py 의 것을 가져다 쓴다(import).
 
 실행:
-  python memo_assistant.py     직접 대화한다 (빈 줄 또는 '끝'을 입력하면 끝난다)
   python memo_assistant.py 1   실습 1: 대화 기억 없이 / 있게 이어서 묻는다
-  python memo_assistant.py 2   실습 2: 요약 규칙 두 가지를 비교한다
+  (직접 대화하기와 실습 2의 python memo_assistant.py 2 는 실습 2의 파일에서 요약 부분을 더한 뒤 쓴다)
 """
 import re
 import sys
@@ -124,8 +123,5 @@ def part1():
 if __name__ == "__main__":
     if sys.argv[1:] == ["1"]:
         part1()
-    elif sys.argv[1:] == ["2"]:
-        part2()
     else:
-        print("메모 정리 도우미입니다. 빈 줄 또는 '끝'을 입력하면 끝납니다.")
-        print_summary(chat())
+        print("사용법: python memo_assistant.py 1")
