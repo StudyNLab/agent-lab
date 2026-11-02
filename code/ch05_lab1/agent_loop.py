@@ -10,7 +10,7 @@
 
 실행:
   python agent_loop.py 1   실습 1: 질문 두 개로 Agent 루프를 돌린다
-  python agent_loop.py 2   실습 2: 반복 상한, 도구 설명, 도구 오류를 바꿔 가며 비교한다
+  (실습 2의 python agent_loop.py 2 는 실습 2의 파일에서 part2() 를 더한 뒤 쓴다)
 """
 import json
 import sys
@@ -249,7 +249,5 @@ def part1():
 if __name__ == "__main__":
     if sys.argv[1:] == ["1"]:
         part1()
-    elif sys.argv[1:] == ["2"]:
-        part2()
     else:
-        print("사용법: python agent_loop.py 1   또는   python agent_loop.py 2")
+        print("사용법: python agent_loop.py 1")
