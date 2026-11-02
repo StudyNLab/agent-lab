@@ -96,7 +96,5 @@ def part1():
 if __name__ == "__main__":
     if sys.argv[1:] == ["1"]:
         part1()
-    elif sys.argv[1:] == ["2"]:
-        part2()
     else:
-        print("사용법: python prompt_and_json.py 1   또는   python prompt_and_json.py 2")
+        print("사용법: python prompt_and_json.py 1")
