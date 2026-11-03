@@ -1,6 +1,6 @@
 """메모 정리 도우미 완성본: 대화 기억 + 컨텍스트 관리 (CHAPTER 6에서 만든다)
 
-  - 대화 기억: messages 하나를 대화 내내 이어 쓴다. 모델은 요청 사이에 기억하지 않으므로(stateless),
+  - 대화 기억: messages 하나를 대화 내내 이어 쓴다. API는 앞의 요청을 이어 주지 않으므로(stateless),
     프로그램이 지금까지의 대화 전체를 요청마다 다시 보낸다.
   - 컨텍스트 관리: 질문 토큰이 기준(TOKEN_LIMIT)을 넘으면 오래된 턴을 요약해 짧게 바꾼다.
     턴 = 사용자 질문 하나로 시작하는 묶음. 도구 요청과 결과의 짝이 깨지지 않게 턴 단위로 자른다.
@@ -28,15 +28,15 @@ CHAT_PROMPT = SYSTEM_PROMPT.replace("\n\n출력 형식:", "\n" + CHAT_RULE + "\n
 TOKEN_LIMIT = 2000      # 질문 토큰이 이보다 크면 요약한다 (시연용으로 작게 잡았다)
 KEEP_TURNS = 1          # 요약하지 않고 그대로 둘 최근 턴 수
 
-SUMMARY_RULE = (        # 규칙 2: 대화에만 있는 것(질문과 결론)만 남긴다
+SUMMARY_RULE = (        # 규칙 2: 대화에만 있는 것(질문, 알려 준 사실, 결론)만 남긴다
     "다음은 메모 정리 도우미와 사용자의 대화 기록이다. 이어서 대화할 수 있도록 요약한다.\n"
-    "- 사용자가 물은 것과 도우미가 낸 결론만 적는다. 결론에 나온 날짜·담당자·파일 이름은 그대로 둔다.\n"
+    "- 사용자가 물은 것, 사용자가 새로 알려 주거나 바꾼 사실, 도우미가 낸 결론만 적는다. 날짜·담당자·파일 이름은 그대로 둔다.\n"
     "- 메모 원문과 도구 결과는 옮겨 적지 않는다. (필요하면 도구로 다시 읽을 수 있다)\n"
     "- 질문 하나에 한 줄, '- '로 시작하는 목록으로 쓴다."
 )
 FACTS_RULE = (          # 규칙 1: 메모의 사실까지 빠짐없이 남긴다 (실습 2의 비교용)
     "다음은 메모 정리 도우미와 사용자의 대화 기록이다. 이어서 대화할 수 있도록 요약한다.\n"
-    "- 사용자가 물은 것, 도우미가 읽은 메모의 내용, 도우미가 낸 결론을 빠짐없이 적는다.\n"
+    "- 사용자가 물은 것, 사용자가 새로 알려 주거나 바꾼 사실, 도우미가 읽은 메모의 내용, 도우미가 낸 결론을 빠짐없이 적는다.\n"
     "- '- '로 시작하는 목록으로 쓴다."
 )
 
@@ -208,31 +208,31 @@ COMPACT_QUESTIONS = [
     f"이대리 안내 자료 초안 마감이 {NEW_DUE}(화)로 늦춰졌대. 메모는 아직 안 고쳤어. 이대리가 맡은 일 정리해 줘.",
     "내가 맡은 일도 같은 방식으로 정리해 줘.",
     "11월 일정 알려 줘.",
-    "이대리 안내 자료 초안은 지금 기준으로 언제까지 내면 돼? 마감 날짜 하나만 답해 줘.",
+    "이대리 안내 자료 초안은 지금 기준으로 언제까지 내면 돼? 마감 날짜 하나만 월/일(예: 11/5)로 답해 줘.",
 ]
 
 
 def judge_due(answer):
-    """마지막 답이 새 마감을 적용했는가. 날짜를 '언급'한 것과 '마감으로 답한' 것을 나눈다.
+    """마지막 답에서 두 기준 날짜(새 마감, 옛 마감)를 글자로 찾아 표시한다. 뜻은 답을 읽어 확인한다.
 
-    마감 하나만 답하라고 물었으므로 답의 첫 날짜를 답한 마감으로 보고, 나머지 날짜는 언급으로 본다.
+    마감 하나만 답하라고 물었으므로 처음 나온 기준 날짜를 먼저 찍고, 다른 기준 날짜도 나왔는지 덧붙인다.
     """
     dates = [d for d in re.findall(r"\d{1,2}/\d{1,2}", answer) if d in (NEW_DUE, OLD_DUE)]
     if not dates:
-        return "마감 없음"
+        return f"기준 날짜({NEW_DUE}, {OLD_DUE}) 못 찾음"
     other = OLD_DUE if dates[0] == NEW_DUE else NEW_DUE
-    mention = f", {other}은 언급만" if other in dates else ""
+    mention = f", {other}도 나옴" if other in dates else ""
     if dates[0] == NEW_DUE:
-        return f"{NEW_DUE}으로 답함 (새 마감을 적용했다{mention})"
+        return f"처음 나온 날짜 {NEW_DUE} (새 마감{mention})"
     if NEW_DUE in dates:
-        return f"{OLD_DUE}으로 답함 (새 마감을 기억했지만 적용하지 않았다{mention})"
-    return f"{OLD_DUE}으로 답함 (메모의 옛 마감, {NEW_DUE} 언급 없음)"
+        return f"처음 나온 날짜 {OLD_DUE} (옛 마감{mention})"
+    return f"처음 나온 날짜 {OLD_DUE} (옛 마감, {NEW_DUE}은 안 나옴)"
 
 
 def part2():
     agent_loop.SHOW = False                        # 호출마다 찍는 줄은 끈다
     rows = []
-    for label, rule in [("규칙 1: 메모 사실까지", FACTS_RULE), ("규칙 2: 질문과 결론만", SUMMARY_RULE)]:
+    for label, rule in [("규칙 1: 메모 사실까지", FACTS_RULE), ("규칙 2: 대화 내용만", SUMMARY_RULE)]:
         print("=" * 60)
         print(label)
         print("=" * 60)
@@ -255,7 +255,7 @@ def part2():
         if not last["summary"]:
             kept = "요약 없음 (대화 원문 그대로)"
         else:
-            kept = f"바뀐 마감 {NEW_DUE} {'있음' if NEW_DUE in last['summary'] else '없음'}"
+            kept = f"'{NEW_DUE}' 글자 {'있음' if NEW_DUE in last['summary'] else '없음'}"
         answer = judge_due(last["answer"])
         print(label)
         print(f"  요약한 때     : {after} (요약하지 않음: {failed})")

@@ -18,9 +18,9 @@ from dotenv import load_dotenv
 BASE_URL = "https://api.deepseek.com"            # 호스트 (서버 주소)
 ENDPOINT = BASE_URL + "/chat/completions"        # 엔드포인트: "대화 답 만들기" 기능의 URL
 MODEL = "deepseek-flash"                         # 모델 이름
-TIMEOUT = 60                                     # 응답을 기다리는 최대 시간(초)
+TIMEOUT = 60                                     # 연결하거나 응답 데이터를 기다리는 한도(초)
 MAX_ATTEMPTS = 3                                 # 처음 보내기 + 다시 시도
-RETRY_STATUS = {429, 500, 502, 503, 504}         # 다시 보내면 될 수 있는 상태 코드
+RETRY_STATUS = {429, 500, 502, 503, 504}         # 잠시 뒤 다시 보내면 성공할 수 있는 상태 코드
 NO_THINKING = {"thinking": {"type": "disabled"}}  # 생각 모드를 끄는 본문 항목 (제공사마다 다르다)
 
 
