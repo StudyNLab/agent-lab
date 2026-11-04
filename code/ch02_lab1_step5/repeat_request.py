@@ -1,4 +1,4 @@
-"""LLM API 호출 (CHAPTER 2 실습 1: 첫 요청 보내고 요청·응답 확인하기)"""
+"""같은 요청을 세 번 보내 답 비교하기 (CHAPTER 2 실습 1 Step 5)"""
 import os
 
 import requests

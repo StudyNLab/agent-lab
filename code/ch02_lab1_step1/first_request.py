@@ -1,4 +1,4 @@
-"""LLM API 호출 (CHAPTER 2 실습 1: 첫 요청 보내고 요청·응답 확인하기)"""
+"""첫 요청 보내고 요청·응답 확인하기 (CHAPTER 2 실습 1 Step 2)"""
 import json
 import os
 
